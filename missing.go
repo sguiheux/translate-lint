@@ -10,6 +10,7 @@ import (
 )
 
 var translateTSRegexp = regexp.MustCompile("instant\\('(.*?)'")
+var translateTSRouteRegexp = regexp.MustCompile("translate:\\s*'(.*?)'")
 var translateHtmlTemplate = regexp.MustCompile("(?:{{|\")\\s*'(.*?)'\\s*\\|\\s*translate\\s*(?:}}|\")")
 
 func findMissingTranslate(file I18nFileInfo) int {
@@ -114,6 +115,20 @@ func findInTsFile(line string, i18nContent map[string]string) []string {
 			}
 		}
 	}
+
+	resultsRoute := translateTSRouteRegexp.FindStringSubmatch(line)
+	if len(resultsRoute) > 1 {
+		for i := 1; i < len(resultsRoute); i = i + 2 {
+			if strings.HasSuffix(resultsRoute[i], "_") {
+				continue
+			}
+			if _, has := i18nContent[resultsRoute[i]]; !has {
+				missings = append(missings, resultsRoute[i])
+			}
+		}
+	}
+
+
 	return missings
 }
 
